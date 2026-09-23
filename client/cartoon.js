@@ -68,9 +68,27 @@ preview.className = "preview-backdrop";
 preview.hidden = true;
 preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen">▶</div><h3 id="preview-title">กำลังเปิดตัวอย่าง</h3><p>ตัวอย่างหนังการ์ตูนกำลังฉายอยู่ สนุกได้ทุกวัย</p><button class="primary-button preview-play">เริ่มชมตอนนี้ <span>→</span></button></section>`;
 document.body.appendChild(preview);
-const closePreview = () => { preview.hidden = true; };
-preview.querySelector(".preview-close").onclick = closePreview;
-preview.onclick = (event) => { if (event.target === preview) closePreview(); };
+const closePreview = () => {
+  preview.hidden = true;
+  preview.querySelector(".preview-screen").textContent = "▶";
+  preview.querySelector(".preview-play").disabled = false;
+};
+preview.querySelector(".preview-close").addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  closePreview();
+});
+preview.querySelector(".preview-play").addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const screen = preview.querySelector(".preview-screen");
+  screen.textContent = "กำลังฉาย...";
+  preview.querySelector(".preview-play").textContent = "กำลังชมอยู่ ✓";
+  preview.querySelector(".preview-play").disabled = true;
+});
+preview.addEventListener("click", (event) => {
+  if (event.target === preview) closePreview();
+});
 document.addEventListener("click", (event) => {
   const trigger = event.target.closest(".movie-card, .movie-watch, .movie-button, .hero .primary-button");
   if (!trigger) return;
