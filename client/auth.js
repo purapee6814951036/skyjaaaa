@@ -64,6 +64,8 @@ if (modal && form && submitButton && emailInput && passwordInput) {
       nameInput = document.createElement('input');
       nameInput.type = 'text';
       nameInput.required = true;
+      nameInput.minLength = 2;
+      nameInput.maxLength = 60;
       nameInput.placeholder = 'ชื่อที่แสดง';
       nameInput.className = 'auth-name';
       const emailLabel = emailInput.closest('label');
@@ -72,6 +74,8 @@ if (modal && form && submitButton && emailInput && passwordInput) {
       nameLabel?.appendChild(nameInput);
     }
     if (nameInput) nameInput.closest('label').hidden = !registerMode;
+    passwordInput.minLength = registerMode ? 8 : 0;
+    passwordInput.autocomplete = registerMode ? 'new-password' : 'current-password';
     submitButton.innerHTML = registerMode ? 'สมัครสมาชิก <span>→</span>' : 'เข้าสู่ระบบ <span>→</span>';
     if (registerLink) registerLink.textContent = registerMode ? 'กลับเข้าสู่ระบบ' : 'สมัครสมาชิกฟรี';
     setMessage('');
@@ -117,14 +121,21 @@ if (modal && form && submitButton && emailInput && passwordInput) {
         body: JSON.stringify(body),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || `ดำเนินการไม่สำเร็จ (${response.status})`);
+      if (!response.ok) {
+        const message = response.status >= 500
+          ? 'ระบบสมัครสมาชิก/เข้าสู่ระบบขัดข้อง กรุณาตรวจสอบเซิร์ฟเวอร์และฐานข้อมูล'
+          : data.message || `ดำเนินการไม่สำเร็จ (${response.status})`;
+        throw new Error(message);
+      }
       localStorage.setItem('rush90-token', data.token);
       setAuthenticatedUser(data.user);
       modal.classList.add('hidden');
       setMode(false);
       form.reset();
     } catch (error) {
-      setMessage(error.message || 'ไม่สามารถเชื่อมต่อระบบได้');
+      setMessage(error instanceof TypeError
+        ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาเปิด API และตรวจสอบการตั้งค่าฐานข้อมูล'
+        : error.message || 'ไม่สามารถเชื่อมต่อระบบได้');
     } finally {
       submitButton.disabled = false;
     }

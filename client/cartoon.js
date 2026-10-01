@@ -66,12 +66,109 @@ document.head.appendChild(style);
 const preview = document.createElement("div");
 preview.className = "preview-backdrop";
 preview.hidden = true;
-preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen">▶</div><h3 id="preview-title">กำลังเปิดตัวอย่าง</h3><p>ตัวอย่างหนังการ์ตูนกำลังฉายอยู่ สนุกได้ทุกวัย</p><button class="primary-button preview-play">เริ่มชมตอนนี้ <span>→</span></button></section>`;
+preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen"><canvas class="preview-scene" aria-label="การ์ตูนกระต่ายกระโดดเล่นในทุ่งหญ้า"></canvas></div><h3 id="preview-title">กระต่ายจอมซน</h3><p>มินิการ์ตูนแอนิเมชันต้นฉบับ</p><button class="primary-button preview-play">เริ่มชมตอนนี้ <span>→</span></button></section>`;
 document.body.appendChild(preview);
+const previewMediaStyle = document.createElement("style");
+previewMediaStyle.textContent = ".preview-dialog{width:min(920px,100%)}.preview-screen{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#8edcff}.preview-scene{position:absolute;inset:0;display:block;width:100%;height:100%}";
+document.head.appendChild(previewMediaStyle);
+const scene = preview.querySelector(".preview-scene");
+const sceneContext = scene.getContext("2d");
+let animationFrame;
+let animationStartedAt;
+let animationElapsed = 0;
+let animationRunning = false;
+
+const drawScene = (timestamp = 0) => {
+  const bounds = scene.getBoundingClientRect();
+  const pixelRatio = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.round(bounds.width * pixelRatio));
+  const height = Math.max(1, Math.round(bounds.height * pixelRatio));
+  if (scene.width !== width || scene.height !== height) {
+    scene.width = width;
+    scene.height = height;
+  }
+  const context = sceneContext;
+  const scale = width / 800;
+  const time = animationElapsed + (animationRunning ? (timestamp - animationStartedAt) / 1000 : 0);
+  context.save();
+  context.scale(scale, scale);
+  context.clearRect(0, 0, 800, 450);
+  context.fillStyle = "#8edcff";
+  context.fillRect(0, 0, 800, 450);
+  context.fillStyle = "#ffe05b";
+  context.beginPath();
+  context.arc(675, 88, 46, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#fff8e8";
+  for (const [x, y] of [[130, 95], [370, 68], [535, 150]]) {
+    context.beginPath();
+    context.ellipse(x + Math.sin(time * 0.25 + x) * 14, y, 55, 17, 0, 0, Math.PI * 2);
+    context.ellipse(x - 24 + Math.sin(time * 0.25 + x) * 14, y + 6, 27, 17, 0, 0, Math.PI * 2);
+    context.ellipse(x + 22 + Math.sin(time * 0.25 + x) * 14, y + 7, 30, 16, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.fillStyle = "#72ce78";
+  context.beginPath();
+  context.ellipse(150, 425, 340, 125, 0, Math.PI, Math.PI * 2);
+  context.ellipse(600, 430, 390, 150, 0, Math.PI, Math.PI * 2);
+  context.fill();
+  const jump = Math.abs(Math.sin(time * 2.4)) * 78;
+  context.save();
+  context.translate(390 + Math.sin(time * 1.2) * 26, 320 - jump);
+  context.rotate(Math.sin(time * 2.4) * 0.08);
+  context.fillStyle = "#fff8e8";
+  context.beginPath();
+  context.ellipse(0, 18, 48, 42, 0, 0, Math.PI * 2);
+  context.ellipse(0, -36, 36, 34, 0, 0, Math.PI * 2);
+  context.ellipse(-18, -83, 11, 36, -0.16, 0, Math.PI * 2);
+  context.ellipse(17, -84, 11, 38, 0.15, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#ff8fbd";
+  context.beginPath();
+  context.ellipse(-18, -83, 5, 25, -0.16, 0, Math.PI * 2);
+  context.ellipse(17, -84, 5, 27, 0.15, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#34204f";
+  context.beginPath();
+  context.arc(-12, -40, 4, 0, Math.PI * 2);
+  context.arc(12, -40, 4, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#ff6b4a";
+  context.beginPath();
+  context.moveTo(0, -29);
+  context.lineTo(-7, -35);
+  context.lineTo(7, -35);
+  context.fill();
+  context.restore();
+  context.save();
+  context.translate(510, 345);
+  context.rotate(time * 1.7);
+  context.fillStyle = "#ff6b4a";
+  context.beginPath();
+  context.moveTo(0, -31);
+  context.quadraticCurveTo(32, 2, 0, 35);
+  context.quadraticCurveTo(-32, 2, 0, -31);
+  context.fill();
+  context.fillStyle = "#54a85a";
+  context.fillRect(-4, -46, 8, 18);
+  context.restore();
+  context.restore();
+  if (animationRunning) animationFrame = requestAnimationFrame(drawScene);
+};
+const sceneResizeObserver = new ResizeObserver(() => drawScene());
+sceneResizeObserver.observe(preview.querySelector(".preview-screen"));
+drawScene();
 const closePreview = () => {
   preview.hidden = true;
-  preview.querySelector(".preview-screen").textContent = "▶";
-  preview.querySelector(".preview-play").disabled = false;
+  if (animationRunning) animationElapsed += (performance.now() - animationStartedAt) / 1000;
+  animationRunning = false;
+  cancelAnimationFrame(animationFrame);
+  animationElapsed = 0;
+  animationStartedAt = undefined;
+  drawScene();
+  const playButton = preview.querySelector(".preview-play");
+  playButton.disabled = false;
+  playButton.innerHTML = "เริ่มชมตอนนี้ <span>→</span>";
 };
 preview.querySelector(".preview-close").addEventListener("click", (event) => {
   event.preventDefault();
@@ -81,10 +178,18 @@ preview.querySelector(".preview-close").addEventListener("click", (event) => {
 preview.querySelector(".preview-play").addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
-  const screen = preview.querySelector(".preview-screen");
-  screen.textContent = "กำลังฉาย...";
-  preview.querySelector(".preview-play").textContent = "กำลังชมอยู่ ✓";
-  preview.querySelector(".preview-play").disabled = true;
+  const playButton = preview.querySelector(".preview-play");
+  if (animationRunning) {
+    animationElapsed += (performance.now() - animationStartedAt) / 1000;
+    animationRunning = false;
+    cancelAnimationFrame(animationFrame);
+    playButton.innerHTML = "เล่นต่อ <span>▶</span>";
+    return;
+  }
+  animationStartedAt = performance.now();
+  animationRunning = true;
+  playButton.innerHTML = "พักการ์ตูน <span>Ⅱ</span>";
+  animationFrame = requestAnimationFrame(drawScene);
 });
 preview.addEventListener("click", (event) => {
   if (event.target === preview) closePreview();
@@ -100,6 +205,8 @@ document.addEventListener("click", (event) => {
   const title = trigger.dataset.match || trigger.querySelector("strong")?.textContent || "การ์ตูนเรื่องใหม่";
   preview.querySelector("#preview-title").textContent = title;
   preview.hidden = false;
+  animationElapsed = 0;
+  drawScene();
 }, true);
 
 mountCartoonPage();
