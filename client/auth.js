@@ -4,11 +4,48 @@ const submitButton = form?.querySelector('button[type="submit"]');
 const emailInput = form?.querySelector('input[type="email"]');
 const passwordInput = form?.querySelector('input[type="password"]');
 const registerLink = document.querySelector('.register-copy a');
+const registerCopy = document.querySelector('.register-copy');
+const loginTrigger = document.querySelector('.login-trigger');
+const heading = modal?.querySelector('h2');
+const modalSub = modal?.querySelector('.modal-sub');
 
 if (modal && form && submitButton && emailInput && passwordInput) {
   form.onsubmit = null;
   let registerMode = false;
   let nameInput;
+  let currentUser = null;
+  const initialHeading = heading.innerHTML;
+  const initialModalSub = modalSub.textContent;
+  const uploadPanel = document.querySelector('#upload-panel');
+  const logoutButton = document.createElement('button');
+
+  logoutButton.type = 'button';
+  logoutButton.className = 'text-button logout-button';
+  logoutButton.textContent = 'ออกจากระบบ';
+  uploadPanel?.appendChild(logoutButton);
+
+  const setAuthenticatedUser = (user) => {
+    currentUser = user;
+    loginTrigger.textContent = `${user.name} ↗`;
+    heading.innerHTML = 'บัญชีของ<br/><em>คุณ</em>';
+    modalSub.textContent = user.email;
+    form.hidden = true;
+    registerCopy.hidden = true;
+    uploadPanel.classList.remove('hidden');
+  };
+
+  const clearAuthenticatedUser = () => {
+    currentUser = null;
+    localStorage.removeItem('rush90-token');
+    loginTrigger.textContent = 'เข้าสู่ระบบ ↗';
+    heading.innerHTML = initialHeading;
+    modalSub.textContent = initialModalSub;
+    form.hidden = false;
+    registerCopy.hidden = false;
+    uploadPanel.classList.add('hidden');
+    form.reset();
+    setMode(false);
+  };
 
   const setMessage = (message) => {
     let messageElement = form.querySelector('.auth-message');
@@ -45,6 +82,24 @@ if (modal && form && submitButton && emailInput && passwordInput) {
     setMode(!registerMode);
   });
 
+  logoutButton.addEventListener('click', () => {
+    clearAuthenticatedUser();
+    modal.classList.add('hidden');
+  });
+
+  loginTrigger.addEventListener('click', () => modal.classList.remove('hidden'));
+
+  const token = localStorage.getItem('rush90-token');
+  if (token) {
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'เซสชันหมดอายุ');
+        setAuthenticatedUser(data.user);
+      })
+      .catch(() => clearAuthenticatedUser());
+  }
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     submitButton.disabled = true;
@@ -64,8 +119,8 @@ if (modal && form && submitButton && emailInput && passwordInput) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || `ดำเนินการไม่สำเร็จ (${response.status})`);
       localStorage.setItem('rush90-token', data.token);
+      setAuthenticatedUser(data.user);
       modal.classList.add('hidden');
-      document.querySelector('.login-trigger').textContent = `${data.user.name} ↗`;
       setMode(false);
       form.reset();
     } catch (error) {
@@ -76,6 +131,6 @@ if (modal && form && submitButton && emailInput && passwordInput) {
   });
 
   const authStyle = document.createElement('style');
-  authStyle.textContent = '.auth-message{margin:12px 0;color:#d94d3c;font:600 13px Kanit}.auth-name{display:block;width:100%;border:0;border-bottom:1px solid #cbd8d1;outline:0;padding:11px 0;font:500 15px Kanit}.auth-name:focus{border-color:#ff6b4a}';
+  authStyle.textContent = '.auth-message{margin:12px 0;color:#d94d3c;font:600 13px Kanit}.auth-name{display:block;width:100%;border:0;border-bottom:1px solid #cbd8d1;outline:0;padding:11px 0;font:500 15px Kanit}.auth-name:focus{border-color:#ff6b4a}.logout-button{margin-top:12px}.login-modal [hidden]{display:none!important}';
   document.head.appendChild(authStyle);
 }
