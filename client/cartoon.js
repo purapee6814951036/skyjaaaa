@@ -1,12 +1,12 @@
 const movies = [
-  { title: "เจ้าหมาน้อยผจญภัย", meta: "ผจญภัย · 1 ชม. 42 นาที", badge: "แนะนำ", color: "orange" },
-  { title: "แก๊งแมวเหมียวป่วนเมือง", meta: "ตลก · 1 ชม. 35 นาที", badge: "ใหม่", color: "pink" },
-  { title: "อาณาจักรดาวกระดาษ", meta: "แฟนตาซี · 1 ชม. 50 นาที", badge: "ฮิต", color: "blue" },
+  { title: "Big Buck Bunny", meta: "แอนิเมชัน · 10 นาที", badge: "คอมเมดี้", color: "orange", videoId: "YE7VzlLtp-4" },
+  { title: "Sintel", meta: "แอนิเมชัน · 15 นาที", badge: "ผจญภัย", color: "pink", videoId: "eRsGyueVLvQ" },
+  { title: "Elephants Dream", meta: "แอนิเมชัน · 11 นาที", badge: "แฟนตาซี", color: "blue", videoId: "u1o3f9x1JxM" },
 ];
 
 const movieCard = (movie, featured = false) => featured
-  ? `<article class="featured-match movie-card"><div class="feature-top"><span class="live-pill">NOW SHOWING</span><span>TOON90 ORIGINAL</span><button class="dots">•••</button></div><div class="feature-teams movie-feature"><div class="movie-mascot ${movie.color}">★</div><div class="movie-title"><strong>${movie.title}</strong><span>${movie.meta}</span></div><div class="play-bubble">▶</div></div><div class="match-stats"><span>เหมาะสำหรับทุกวัย</span><i><b></b></i><span>พากย์ไทย</span></div><button class="bet-match movie-button" data-match="${movie.title}">ดูตัวอย่าง <span>→</span></button></article>`
-  : `<article class="match-card movie-card"><div class="league-line"><span class="league-dot ${movie.color}"></span> ${movie.badge}<time>HD</time></div><div class="movie-mini"><div class="movie-mascot ${movie.color}">✦</div><strong>${movie.title}</strong></div><p class="movie-meta">${movie.meta}</p><button class="movie-watch" data-match="${movie.title}">▶ ดูรายละเอียด</button></article>`;
+  ? `<article class="featured-match movie-card" data-video-id="${movie.videoId}" data-video-title="${movie.title}"><div class="feature-top"><span class="live-pill">OPEN MOVIE</span><span>BLENDER FOUNDATION</span><button class="dots">•••</button></div><div class="feature-teams movie-feature"><div class="movie-mascot ${movie.color}">★</div><div class="movie-title"><strong>${movie.title}</strong><span>${movie.meta}</span></div><div class="play-bubble">▶</div></div><div class="match-stats"><span>แอนิเมชันต้นฉบับ</span><i><b></b></i><span>รับชมออนไลน์</span></div><button class="bet-match movie-button" data-video-id="${movie.videoId}" data-video-title="${movie.title}">ดูการ์ตูน <span>→</span></button></article>`
+  : `<article class="match-card movie-card" data-video-id="${movie.videoId}" data-video-title="${movie.title}"><div class="league-line"><span class="league-dot ${movie.color}"></span> ${movie.badge}<time>OPEN</time></div><div class="movie-mini"><div class="movie-mascot ${movie.color}">✦</div><strong>${movie.title}</strong></div><p class="movie-meta">${movie.meta}</p><button class="movie-watch" data-video-id="${movie.videoId}" data-video-title="${movie.title}">▶ ดูการ์ตูน</button></article>`;
 
 const replaceText = (selector, text) => {
   const element = document.querySelector(selector);
@@ -51,12 +51,6 @@ export function mountCartoonPage() {
   }
 
   replaceText("footer p", "ดูการ์ตูนอย่างสนุกและเหมาะสมกับวัย · TOON90");
-  document.querySelectorAll(".bet-match, .movie-watch").forEach((button) => {
-    button.onclick = () => {
-      const movie = button.dataset.match || "การ์ตูนเรื่องนี้";
-      alert(`กำลังเปิดตัวอย่าง: ${movie}`);
-    };
-  });
 }
 
 const style = document.createElement("style");
@@ -66,130 +60,19 @@ document.head.appendChild(style);
 const preview = document.createElement("div");
 preview.className = "preview-backdrop";
 preview.hidden = true;
-preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen"><canvas class="preview-scene" aria-label="การ์ตูนกระต่ายกระโดดเล่นในทุ่งหญ้า"></canvas></div><h3 id="preview-title">กระต่ายจอมซน</h3><p>มินิการ์ตูนแอนิเมชันต้นฉบับ</p><button class="primary-button preview-play">เริ่มชมตอนนี้ <span>→</span></button></section>`;
+preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen"><iframe class="preview-video" title="เครื่องเล่นการ์ตูน" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><h3 id="preview-title">การ์ตูน</h3><p class="preview-description">แอนิเมชันจาก Blender Open Movies</p><a class="primary-button preview-watch-external" href="#" target="_blank" rel="noreferrer">เปิดดูบน YouTube <span>↗</span></a></section>`;
 document.body.appendChild(preview);
 const previewMediaStyle = document.createElement("style");
-previewMediaStyle.textContent = ".preview-dialog{width:min(920px,100%)}.preview-screen{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#8edcff}.preview-scene{position:absolute;inset:0;display:block;width:100%;height:100%}";
+previewMediaStyle.textContent = ".preview-dialog{width:min(920px,100%)}.preview-screen{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#17121f}.preview-video{position:absolute;inset:0;width:100%;height:100%;border:0}.preview-watch-external{display:inline-flex;align-items:center;gap:8px;margin:10px 0 0;text-decoration:none;color:inherit}";
 document.head.appendChild(previewMediaStyle);
-const scene = preview.querySelector(".preview-scene");
-const sceneContext = scene.getContext("2d");
-let animationFrame;
-let animationStartedAt;
-let animationElapsed = 0;
-let animationRunning = false;
-
-const drawScene = (timestamp = 0) => {
-  const bounds = scene.getBoundingClientRect();
-  const pixelRatio = window.devicePixelRatio || 1;
-  const width = Math.max(1, Math.round(bounds.width * pixelRatio));
-  const height = Math.max(1, Math.round(bounds.height * pixelRatio));
-  if (scene.width !== width || scene.height !== height) {
-    scene.width = width;
-    scene.height = height;
-  }
-  const context = sceneContext;
-  const scale = width / 800;
-  const time = animationElapsed + (animationRunning ? (timestamp - animationStartedAt) / 1000 : 0);
-  context.save();
-  context.scale(scale, scale);
-  context.clearRect(0, 0, 800, 450);
-  context.fillStyle = "#8edcff";
-  context.fillRect(0, 0, 800, 450);
-  context.fillStyle = "#ffe05b";
-  context.beginPath();
-  context.arc(675, 88, 46, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "#fff8e8";
-  for (const [x, y] of [[130, 95], [370, 68], [535, 150]]) {
-    context.beginPath();
-    context.ellipse(x + Math.sin(time * 0.25 + x) * 14, y, 55, 17, 0, 0, Math.PI * 2);
-    context.ellipse(x - 24 + Math.sin(time * 0.25 + x) * 14, y + 6, 27, 17, 0, 0, Math.PI * 2);
-    context.ellipse(x + 22 + Math.sin(time * 0.25 + x) * 14, y + 7, 30, 16, 0, 0, Math.PI * 2);
-    context.fill();
-  }
-  context.fillStyle = "#72ce78";
-  context.beginPath();
-  context.ellipse(150, 425, 340, 125, 0, Math.PI, Math.PI * 2);
-  context.ellipse(600, 430, 390, 150, 0, Math.PI, Math.PI * 2);
-  context.fill();
-  const jump = Math.abs(Math.sin(time * 2.4)) * 78;
-  context.save();
-  context.translate(390 + Math.sin(time * 1.2) * 26, 320 - jump);
-  context.rotate(Math.sin(time * 2.4) * 0.08);
-  context.fillStyle = "#fff8e8";
-  context.beginPath();
-  context.ellipse(0, 18, 48, 42, 0, 0, Math.PI * 2);
-  context.ellipse(0, -36, 36, 34, 0, 0, Math.PI * 2);
-  context.ellipse(-18, -83, 11, 36, -0.16, 0, Math.PI * 2);
-  context.ellipse(17, -84, 11, 38, 0.15, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "#ff8fbd";
-  context.beginPath();
-  context.ellipse(-18, -83, 5, 25, -0.16, 0, Math.PI * 2);
-  context.ellipse(17, -84, 5, 27, 0.15, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "#34204f";
-  context.beginPath();
-  context.arc(-12, -40, 4, 0, Math.PI * 2);
-  context.arc(12, -40, 4, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "#ff6b4a";
-  context.beginPath();
-  context.moveTo(0, -29);
-  context.lineTo(-7, -35);
-  context.lineTo(7, -35);
-  context.fill();
-  context.restore();
-  context.save();
-  context.translate(510, 345);
-  context.rotate(time * 1.7);
-  context.fillStyle = "#ff6b4a";
-  context.beginPath();
-  context.moveTo(0, -31);
-  context.quadraticCurveTo(32, 2, 0, 35);
-  context.quadraticCurveTo(-32, 2, 0, -31);
-  context.fill();
-  context.fillStyle = "#54a85a";
-  context.fillRect(-4, -46, 8, 18);
-  context.restore();
-  context.restore();
-  if (animationRunning) animationFrame = requestAnimationFrame(drawScene);
-};
-const sceneResizeObserver = new ResizeObserver(() => drawScene());
-sceneResizeObserver.observe(preview.querySelector(".preview-screen"));
-drawScene();
 const closePreview = () => {
   preview.hidden = true;
-  if (animationRunning) animationElapsed += (performance.now() - animationStartedAt) / 1000;
-  animationRunning = false;
-  cancelAnimationFrame(animationFrame);
-  animationElapsed = 0;
-  animationStartedAt = undefined;
-  drawScene();
-  const playButton = preview.querySelector(".preview-play");
-  playButton.disabled = false;
-  playButton.innerHTML = "เริ่มชมตอนนี้ <span>→</span>";
+  preview.querySelector(".preview-video").src = "";
 };
 preview.querySelector(".preview-close").addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
   closePreview();
-});
-preview.querySelector(".preview-play").addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-  const playButton = preview.querySelector(".preview-play");
-  if (animationRunning) {
-    animationElapsed += (performance.now() - animationStartedAt) / 1000;
-    animationRunning = false;
-    cancelAnimationFrame(animationFrame);
-    playButton.innerHTML = "เล่นต่อ <span>▶</span>";
-    return;
-  }
-  animationStartedAt = performance.now();
-  animationRunning = true;
-  playButton.innerHTML = "พักการ์ตูน <span>Ⅱ</span>";
-  animationFrame = requestAnimationFrame(drawScene);
 });
 preview.addEventListener("click", (event) => {
   if (event.target === preview) closePreview();
@@ -202,11 +85,13 @@ document.addEventListener("click", (event) => {
   if (!trigger) return;
   event.preventDefault();
   event.stopPropagation();
-  const title = trigger.dataset.match || trigger.querySelector("strong")?.textContent || "การ์ตูนเรื่องใหม่";
+  const title = trigger.dataset.videoTitle || trigger.dataset.match || trigger.querySelector("strong")?.textContent || "การ์ตูน";
+  const videoId = trigger.dataset.videoId || trigger.closest("[data-video-id]")?.dataset.videoId;
+  if (!videoId) return;
   preview.querySelector("#preview-title").textContent = title;
+  preview.querySelector(".preview-video").src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+  preview.querySelector(".preview-watch-external").href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
   preview.hidden = false;
-  animationElapsed = 0;
-  drawScene();
 }, true);
 
 mountCartoonPage();
