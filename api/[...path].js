@@ -6,6 +6,11 @@ const connectDB = require("../server/src/config/db");
 module.exports = async (req, res) => {
   try {
     await connectDB();
+    const requestUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+    if (requestUrl.pathname !== "/api" && !requestUrl.pathname.startsWith("/api/")) {
+      requestUrl.pathname = `/api${requestUrl.pathname}`;
+      req.url = `${requestUrl.pathname}${requestUrl.search}`;
+    }
     return app(req, res);
   } catch (error) {
     console.error("Function initialization failed", error);
