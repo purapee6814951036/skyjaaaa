@@ -14,6 +14,7 @@ if (modal && form && submitButton && emailInput && passwordInput) {
   let registerMode = false;
   let nameInput;
   let currentUser = null;
+  let localSession = false;
   const initialHeading = heading.innerHTML;
   const initialModalSub = modalSub.textContent;
   const uploadPanel = document.querySelector('#upload-panel');
@@ -22,26 +23,33 @@ if (modal && form && submitButton && emailInput && passwordInput) {
   logoutButton.type = 'button';
   logoutButton.className = 'text-button logout-button';
   logoutButton.textContent = 'ออกจากระบบ';
-  uploadPanel?.appendChild(logoutButton);
+  logoutButton.hidden = true;
+  modalSub?.after(logoutButton);
 
-  const setAuthenticatedUser = (user) => {
+  const setAuthenticatedUser = (user, { local = false } = {}) => {
     currentUser = user;
+    localSession = local;
     loginTrigger.textContent = `${user.name} ↗`;
     heading.innerHTML = 'บัญชีของ<br/><em>คุณ</em>';
-    modalSub.textContent = user.email;
+    modalSub.textContent = local ? `${user.email} · บัญชีในอุปกรณ์นี้` : user.email;
     form.hidden = true;
     registerCopy.hidden = true;
-    uploadPanel.classList.remove('hidden');
+    logoutButton.hidden = false;
+    if (local) uploadPanel?.classList.add('hidden');
+    else uploadPanel?.classList.remove('hidden');
   };
 
   const clearAuthenticatedUser = () => {
     currentUser = null;
+    localSession = false;
     localStorage.removeItem('rush90-token');
+    localStorage.removeItem('rush90-local-session');
     loginTrigger.textContent = 'เข้าสู่ระบบ ↗';
     heading.innerHTML = initialHeading;
     modalSub.textContent = initialModalSub;
     form.hidden = false;
     registerCopy.hidden = false;
+    logoutButton.hidden = true;
     uploadPanel.classList.add('hidden');
     form.reset();
     setMode(false);
@@ -81,6 +89,43 @@ if (modal && form && submitButton && emailInput && passwordInput) {
     setMessage('');
   };
 
+  const readLocalUsers = () => JSON.parse(localStorage.getItem('rush90-local-users') || '{}');
+  const hashPassword = async (password, salt) => {
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, key, 256);
+    return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+  const localRegister = async ({ name, email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!name || name.trim().length < 2) throw new Error('กรุณากรอกชื่ออย่างน้อย 2 ตัวอักษร');
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) throw new Error('กรุณากรอกอีเมลให้ถูกต้อง');
+    if (password.length < 8) throw new Error('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+    const users = readLocalUsers();
+    if (users[normalizedEmail]) throw new Error('อีเมลนี้สมัครในอุปกรณ์นี้แล้ว กรุณาเข้าสู่ระบบ');
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const passwordHash = await hashPassword(password, salt);
+    users[normalizedEmail] = { name: name.trim(), salt: Array.from(salt), passwordHash };
+    localStorage.setItem('rush90-local-users', JSON.stringify(users));
+    return { name: users[normalizedEmail].name, email: normalizedEmail };
+  };
+  const localLogin = async ({ email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const account = readLocalUsers()[normalizedEmail];
+    if (!account) throw new Error('ไม่พบบัญชีนี้ในอุปกรณ์นี้ กรุณาสมัครสมาชิกก่อน');
+    const passwordHash = await hashPassword(password, new Uint8Array(account.salt));
+    if (passwordHash !== account.passwordHash) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    return { name: account.name, email: normalizedEmail };
+  };
+  const useLocalAuth = async (body, registering) => {
+    const user = registering ? await localRegister(body) : await localLogin(body);
+    localStorage.removeItem('rush90-token');
+    localStorage.setItem('rush90-local-session', JSON.stringify(user));
+    setAuthenticatedUser(user, { local: true });
+    modal.classList.add('hidden');
+    setMode(false);
+    form.reset();
+  };
+
   registerLink?.addEventListener('click', (event) => {
     event.preventDefault();
     setMode(!registerMode);
@@ -93,8 +138,12 @@ if (modal && form && submitButton && emailInput && passwordInput) {
 
   loginTrigger.addEventListener('click', () => modal.classList.remove('hidden'));
 
+  const savedLocalSession = localStorage.getItem('rush90-local-session');
   const token = localStorage.getItem('rush90-token');
-  if (token) {
+  if (savedLocalSession) {
+    try { setAuthenticatedUser(JSON.parse(savedLocalSession), { local: true }); }
+    catch { localStorage.removeItem('rush90-local-session'); }
+  } else if (token) {
     fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
@@ -122,6 +171,10 @@ if (modal && form && submitButton && emailInput && passwordInput) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        if (response.status === 404 || response.status >= 500) {
+          await useLocalAuth(body, registerMode);
+          return;
+        }
         const message = response.status >= 500
           ? 'ระบบสมัครสมาชิก/เข้าสู่ระบบขัดข้อง กรุณาตรวจสอบเซิร์ฟเวอร์และฐานข้อมูล'
           : data.message || `ดำเนินการไม่สำเร็จ (${response.status})`;
@@ -133,9 +186,10 @@ if (modal && form && submitButton && emailInput && passwordInput) {
       setMode(false);
       form.reset();
     } catch (error) {
-      setMessage(error instanceof TypeError
-        ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาเปิด API และตรวจสอบการตั้งค่าฐานข้อมูล'
-        : error.message || 'ไม่สามารถเชื่อมต่อระบบได้');
+      if (error instanceof TypeError) {
+        try { await useLocalAuth(body, registerMode); }
+        catch (localError) { setMessage(localError.message || 'สมัครหรือเข้าสู่ระบบไม่สำเร็จ'); }
+      } else setMessage(error.message || 'ไม่สามารถเชื่อมต่อระบบได้');
     } finally {
       submitButton.disabled = false;
     }
