@@ -1,7 +1,7 @@
 const movies = [
   { title: "Big Buck Bunny", meta: "แอนิเมชัน · 10 นาที", badge: "คอมเมดี้", color: "orange", videoId: "YE7VzlLtp-4" },
-  { title: "Sintel", meta: "แอนิเมชัน · 15 นาที", badge: "ผจญภัย", color: "pink", videoId: "eRsGyueVLvQ" },
-  { title: "Elephants Dream", meta: "แอนิเมชัน · 11 นาที", badge: "แฟนตาซี", color: "blue", videoId: "u1o3f9x1JxM" },
+  { title: "วันพีช (ONE PIECE)", meta: "ตัวอย่าง · 15 นาที", badge: "แนวผจญภัย", color: "pink", videoId: "tlJMx8H9Jd8" },
+  { title: "Attack on Titan", meta: "ตัวอย่าง · 15 นาที", badge: "แฟนตาซี", color: "blue", videoId: "MUCN-JwUvbY" },
 ];
 const stories = [
   {
@@ -15,22 +15,22 @@ const stories = [
     movie: movies[0]
   },
   {
-    title: "Sintel: การเดินทางตามหามังกร",
-    summary: "เรื่องราวการผจญภัยของ Sintel กับมังกรตัวน้อยที่เธอตั้งชื่อว่า Scales",
+    title: "วันพีช: การผจญภัยของกลุ่มหมวกฟาง",
+    summary: "ลูฟี่และกลุ่มหมวกฟางออกเดินทางตามหาวันพีชและเผชิญการผจญภัยครั้งใหม่",
     paragraphs: [
-      "Sintel เป็นหนังสั้นแฟนตาซีจาก Blender Foundation ติดตาม Sintel นักเดินทางผู้กล้าออกตามหามังกรตัวน้อยที่หายไป การเดินทางพาเธอผ่านดินแดนอันตรายและทำให้ต้องเผชิญหน้ากับอดีตของตัวเอง",
-      "หนังเรื่องนี้เป็นส่วนหนึ่งของโครงการ Durian ซึ่งเปิดให้ผู้สร้างและผู้ชมได้เรียนรู้ขั้นตอนการผลิตแอนิเมชัน ตั้งแต่การออกแบบตัวละครไปจนถึงภาพและเสียง",
-      "หนังมีความยาวประมาณ 15 นาที กดปุ่มด้านล่างเพื่อรับชมฉบับเต็ม"
+      "วันพีชติดตามการเดินทางของมังกี้ ดี. ลูฟี่และกลุ่มโจรสลัดหมวกฟาง ที่มุ่งหน้าสู่แกรนด์ไลน์เพื่อตามหาสมบัติวันพีช",
+      "ตัวอย่างนี้มาจากช่อง ONE PIECE Official - ENG บน YouTube กดปุ่มด้านล่างเพื่อเปิดชมวิดีโอต้นฉบับ",
+      "รายการนี้จัดเป็นตัวอย่างรับชม 15 นาที"
     ],
     movie: movies[1]
   },
   {
-    title: "Elephants Dream: ความฝันในโลกเหนือจริง",
-    summary: "หนังสั้นไซไฟที่พาผู้ชมสำรวจโลกประหลาดผ่านสายตาของตัวละครสองคน",
+    title: "Attack on Titan: มหาศึกมนุษยชาติกับไททัน",
+    summary: "เรื่องราวการต่อสู้เพื่อเอาชีวิตรอดของมนุษย์จากเหล่าไททัน",
     paragraphs: [
-      "Elephants Dream เป็นหนังสั้นแอนิเมชันแนวเหนือจริงจาก Blender Foundation เรื่องราวเกิดขึ้นในโลกเครื่องจักรขนาดมหึมา โดยมีตัวละคร Emo และ Proog เดินทางสำรวจสถานที่ที่ตีความได้แตกต่างกัน",
-      "ผลงานนี้เป็น Open Movie รุ่นบุกเบิกของ Blender Institute สร้างขึ้นเพื่อทดลองกระบวนการทำภาพยนตร์ด้วยซอฟต์แวร์เปิด และเผยแพร่ผลงานกับไฟล์ประกอบให้ผู้สนใจนำไปเรียนรู้",
-      "หนังมีความยาวประมาณ 11 นาที กดปุ่มด้านล่างเพื่อรับชมฉบับเต็ม"
+      "Attack on Titan เล่าเรื่องมนุษย์ที่ต้องต่อสู้กับไททันและค้นหาความจริงเบื้องหลังกำแพงที่ใช้ปกป้องเมือง",
+      "ตัวอย่างที่เลือกเป็นวิดีโอจากช่อง Crunchyroll บน YouTube กดปุ่มด้านล่างเพื่อเปิดชมต้นฉบับ",
+      "รายการนี้จัดเป็นตัวอย่างรับชม 15 นาที"
     ],
     movie: movies[2]
   }
@@ -63,7 +63,7 @@ export function mountCartoonPage() {
     const date = document.querySelector("#matches .date-switcher strong");
     if (date) date.textContent = "เลือกชมได้ทุกเวลา";
     const filters = document.querySelectorAll("#matches .filter");
-    ["ทั้งหมด 12", "มาใหม่ 5", "ผจญภัย", "ตลก", "แฟนตาซี"].forEach((label, index) => {
+    ["ทั้งหมด 12", "มาใหม่ 5", "แนวผจญภัย", "ตลก", "แฟนตาซี"].forEach((label, index) => {
       if (filters[index]) filters[index].innerHTML = label;
     });
     const grid = section.querySelector(".matches-grid");
@@ -78,8 +78,8 @@ export function mountCartoonPage() {
     const stories = document.querySelectorAll("#news h3");
     const storyHeadlines = [
       "เปิดโลกเบื้องหลัง Big Buck Bunny",
-      "Sintel: การเดินทางตามหามังกร",
-      "Elephants Dream: ความฝันในโลกเหนือจริง"
+      "วันพีช: การผจญภัยของกลุ่มหมวกฟาง",
+      "Attack on Titan: มหาศึกมนุษยชาติกับไททัน"
     ];
     storyHeadlines.forEach((text, index) => {
       if (stories[index]) stories[index].textContent = text;
