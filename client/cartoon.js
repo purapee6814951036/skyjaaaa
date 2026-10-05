@@ -1,7 +1,7 @@
 const movies = [
   { title: "Big Buck Bunny", meta: "แอนิเมชัน · 10 นาที", badge: "คอมเมดี้", color: "orange", videoId: "YE7VzlLtp-4" },
-  { title: "วันพีช (ONE PIECE)", meta: "ตัวอย่าง · 15 นาที", badge: "แนวผจญภัย", color: "pink", videoId: "tlJMx8H9Jd8" },
-  { title: "Attack on Titan", meta: "ตัวอย่าง · 15 นาที", badge: "แฟนตาซี", color: "blue", videoId: "MUCN-JwUvbY" },
+  { title: "วันพีช (ONE PIECE)", meta: "ตัวอย่าง · 15 นาที", badge: "แนวผจญภัย", color: "pink", videoId: "tlJMx8H9Jd8", provider: "ตัวอย่างทางการจาก ONE PIECE Official - ENG", watchUrl: "https://www.crunchyroll.com/series/GRMG8ZQZR/one-piece" },
+  { title: "Attack on Titan", meta: "ตัวอย่าง · 15 นาที", badge: "แฟนตาซี", color: "blue", videoId: "MUCN-JwUvbY", provider: "ตัวอย่างจาก Crunchyroll", watchUrl: "https://www.crunchyroll.com/series/GR751KNZY/attack-on-titan" },
 ];
 const stories = [
   {
@@ -135,19 +135,23 @@ storyReader.addEventListener("click", (event) => {
 const preview = document.createElement("div");
 preview.className = "preview-backdrop";
 preview.hidden = true;
-preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen"><iframe class="preview-video" title="เครื่องเล่นการ์ตูน" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><h3 id="preview-title">การ์ตูน</h3><p class="preview-description">แอนิเมชันจาก Blender Open Movies</p><a class="primary-button preview-watch-external" href="#" target="_blank" rel="noreferrer">เปิดดูบน YouTube <span>↗</span></a></section>`;
+preview.innerHTML = `<section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" aria-label="ปิด">×</button><div class="preview-screen"><iframe class="preview-video" title="เครื่องเล่นการ์ตูน" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><h3 id="preview-title">การ์ตูน</h3><p class="preview-description"></p><p class="preview-fallback-note">ถ้าวิดีโอถูกจำกัดในประเทศของคุณ ให้เปิดดูต่อจากแหล่งรับชมทางการด้านล่าง</p><a class="primary-button preview-watch-external" href="#" target="_blank" rel="noreferrer">ดูต่อที่แหล่งทางการ <span>↗</span></a></section>`;
 document.body.appendChild(preview);
 const previewMediaStyle = document.createElement("style");
-previewMediaStyle.textContent = ".preview-dialog{width:min(920px,100%)}.preview-screen{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#17121f}.preview-video{position:absolute;inset:0;width:100%;height:100%;border:0}.preview-watch-external{display:inline-flex;align-items:center;gap:8px;margin:10px 0 0;text-decoration:none;color:inherit}";
+previewMediaStyle.textContent = ".preview-dialog{width:min(920px,100%)}.preview-screen{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#17121f}.preview-video{position:absolute;inset:0;width:100%;height:100%;border:0}.preview-watch-external{display:inline-flex;align-items:center;gap:8px;margin:10px 0 0;text-decoration:none;color:inherit}.preview-fallback-note{margin:8px 0;color:#7c6c8e;font-size:13px}";
 document.head.appendChild(previewMediaStyle);
 const closePreview = () => {
   preview.hidden = true;
   preview.querySelector(".preview-video").src = "";
 };
 const openMovie = (videoId, title) => {
+  const movie = movies.find((item) => item.videoId === videoId);
   preview.querySelector("#preview-title").textContent = title;
+  preview.querySelector(".preview-description").textContent = movie?.provider || "ตัวอย่างการ์ตูนบน YouTube";
   preview.querySelector(".preview-video").src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
-  preview.querySelector(".preview-watch-external").href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+  const watchLink = preview.querySelector(".preview-watch-external");
+  watchLink.href = movie?.watchUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+  watchLink.firstChild.textContent = movie?.watchUrl ? "ดูต่อที่ Crunchyroll " : "เปิดดูบน YouTube ";
   preview.hidden = false;
 };
 preview.querySelector(".preview-close").addEventListener("click", (event) => {
